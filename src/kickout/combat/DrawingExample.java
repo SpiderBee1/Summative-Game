@@ -37,8 +37,6 @@ public class DrawingExample extends JComponent {
 
 
     // YOUR GAME VARIABLES WOULD GO HERE
-    Color Mtndew = new Color(83, 255, 0);
-    Color Dorito = new Color(255,122,31);
     int pacmanx = 90;
     int rotation = 0;
     int charge = 180;
@@ -87,27 +85,20 @@ public class DrawingExample extends JComponent {
         int[] xpoints = {550, 600, 750};
         int[] ypoints = {175, 50, 130};
         // GAME DRAWING GOES HERE
-        //draw a line from (x1,y1) to {x2,y2)
-        g.drawLine(100, 50, 400, 300);
-        //draw a rectangle 
-        g.drawRect(400, 300, 250, 100);
-        //change color
-        g.setColor(Dorito);
-        //draw a  rounded rectangle
-        g.drawRoundRect(400, 450, 100, 100, 50, 50);
-        //draw a triangle, a three sided polygon
-        g.fillPolygon(xpoints, ypoints, 3);
-        //draw pacman
+        g.setColor(Color.WHITE);
+        g.fillOval(pacmanx, 500, 70, 70);
         g.setColor(Color.MAGENTA);
-        g.fillArc(pacmanx, 105, 70, 70, (rotation*-1)-charge/2, charge);
+        g.fillArc(pacmanx, 500, 70, 70, (rotation*-1)-charge/2, charge);
         g.setColor(Color.BLACK);
-        g.drawOval(pacmanx, 105, 70, 70);
+        g.drawOval(pacmanx, 500, 70, 70);
         if(charge>360){
             g.setColor(Color.MAGENTA);
         }else{
         g.setColor(Color.WHITE);
         }
-        g.fillOval(pacmanx + 10, 115, 50, 50);
+        g.fillOval(pacmanx + 10, 510, 50, 50);
+        g.setColor(Color.BLACK);
+        g.drawOval(pacmanx + 10, 510, 50, 50);
 
         // GAME DRAWING ENDS HERE
     }
