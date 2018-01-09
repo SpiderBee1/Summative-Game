@@ -4,12 +4,12 @@ package kickout.combat;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 import java.awt.Dimension;
 import java.awt.Graphics;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -18,7 +18,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.Player;
 
 /**
  *
@@ -37,10 +42,10 @@ public class KickoutCombat extends JComponent {
     long desiredTime = (1000) / desiredFPS;
     // YOUR GAME VARIABLES WOULD GO HERE
     //STARTING
-    int StartLives = 3; 
+    int StartLives = 3;
     int StartHealth = 200;
     //0=none, 1=p1, 2=p2
-    int lastHit = 1;
+    int lastHit = 2;
     //PLAYER 1
     Rectangle p1 = new Rectangle(130, 520, 70, 250);
     boolean p1Left = false;
@@ -76,7 +81,7 @@ public class KickoutCombat extends JComponent {
     int p2Health = StartHealth;
     //BALL
     Rectangle ball = new Rectangle(574, 720, 50, 50);
-    boolean ballOnGround =true;
+    boolean ballOnGround = true;
     int charge = 180;
     int rotation = 0;
     int rotationOffset = 0;
@@ -86,12 +91,15 @@ public class KickoutCombat extends JComponent {
     int[] prevX = new int[trail];
     int[] prevY = new int[trail];
     //BLOCKS
-    Rectangle Floor = new Rectangle(0, 770, WIDTH, 130);
-    Rectangle Ceiling = new Rectangle(0, 0, WIDTH, 30);
-    Rectangle platform = new Rectangle(10,10,10,10);
+    Rectangle floor = new Rectangle(0, 770, WIDTH, 130);
+    Rectangle ceiling = new Rectangle(0, 0, WIDTH, 30);
+    Rectangle leftWall = new Rectangle(0, 0, 30, HEIGHT);
+    Rectangle rightWall = new Rectangle(WIDTH - 30, 0, 30, HEIGHT);
+    Rectangle platform = new Rectangle(10, 10, 10, 10);
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
     // You will learn more about this in Grade 12 :)
+
     public KickoutCombat() {
         // creates a windows to show my game
         JFrame frame = new JFrame(title);
@@ -115,6 +123,26 @@ public class KickoutCombat extends JComponent {
         this.addMouseMotionListener(m);
         this.addMouseWheelListener(m);
         this.addMouseListener(m);
+    }
+
+    public void playSong(String name) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(name);
+            Player player = null;
+            try {
+                player = new Player(fileInputStream);
+            } catch (JavaLayerException ex) {
+                Logger.getLogger(KickoutCombat.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println("Song is playing...");
+            player.play();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JavaLayerException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     // drawing of the game happens in here
@@ -141,16 +169,27 @@ public class KickoutCombat extends JComponent {
         g.setColor(Color.YELLOW);
         g.fillRect(p2.x, p2.y, p2.width, p2.height);
         //BALL EFFECTS
+        for (int i = 0; i < prevX.length; i++) {
+            if (lastHit == 1) {
+                Color purpl = new Color(255, 0, 255, (int) (i / 30.0 * 255));
+                g.setColor(purpl);
+                g.fillOval(prevX[i], prevY[i], 50, 50);
+            } else if (lastHit == 2) {
+                Color yello = new Color(255, 255, 0, (int) (i / 30.0 * 255));
+                g.setColor(yello);
+                g.fillOval(prevX[i], prevY[i], 50, 50);
+            }
+        }
         //BALL
         g.setColor(Color.WHITE);
         g.fillOval(ball.x, ball.y, ball.width, ball.height);
         //this determines the ball's outer color
-        if(lastHit == 0){
+        if (lastHit == 0) {
             g.setColor(Color.LIGHT_GRAY);
-        }else if(lastHit == 1){
+        } else if (lastHit == 1) {
             g.setColor(Color.MAGENTA);
-        }else if(lastHit == 2){
-            g.setColor(Color.YELLOW);    
+        } else if (lastHit == 2) {
+            g.setColor(Color.YELLOW);
         }
         g.fillArc(ball.x, ball.y, ball.width, ball.height, (rotation * -1) - charge / 2, charge);
         g.setColor(Color.BLACK);
@@ -165,21 +204,21 @@ public class KickoutCombat extends JComponent {
         g.drawOval(ball.x + 10, ball.y + 10, 30, 30);
         //HUD
         g.setColor(Color.BLACK);
-        g.fillRoundRect(490, HEIGHT-110, 220, 220, 120, 60);
+        g.fillRoundRect(490, HEIGHT - 110, 220, 220, 120, 60);
         g.fillRoundRect(490, -100, 220, 220, 120, 60);
         g.fillRect(0, 0, 30, HEIGHT);
-        g.fillRect(WIDTH-30, 0, 30, HEIGHT);
-        g.fillRect(0, HEIGHT-80, WIDTH, 80);
+        g.fillRect(WIDTH - 30, 0, 30, HEIGHT);
+        g.fillRect(0, HEIGHT - 80, WIDTH, 80);
         g.fillRect(0, 0, WIDTH, 80);
         //g.fillArc(700, -20, 1000, 200, 180, 90);
         //g.fillArc(-500, -20, 1000, 200, 270, 90);
         g.setColor(Color.LIGHT_GRAY);
-        g.fillRoundRect(500, HEIGHT-100, 200, 200, 100, 50);
+        g.fillRoundRect(500, HEIGHT - 100, 200, 200, 100, 50);
         g.fillRoundRect(500, -90, 200, 200, 100, 50);
         g.setColor(Color.MAGENTA);
-        g.fillRect(0, HEIGHT-70, 490, 60);
+        g.fillRect(0, HEIGHT - 70, 490, 60);
         g.setColor(Color.YELLOW);
-        g.fillRect(710, HEIGHT-70, 490, 60);
+        g.fillRect(710, HEIGHT - 70, 490, 60);
 
         // GAME DRAWING ENDS HERE
     }
@@ -195,6 +234,7 @@ public class KickoutCombat extends JComponent {
             prevX[i] = -100;
             prevY[i] = -100;
         }
+        //playSong("song.mp3");
     }
 
     // The main game loop
@@ -217,86 +257,87 @@ public class KickoutCombat extends JComponent {
             // all your game rules and move is done in here
             // GAME LOGIC STARTS HERE 
             //PLAYER 1 LOGIC STARTS HERE
-            if(p1Right && p1xSpeed < 10){
+            if (p1Right && p1xSpeed < 10) {
                 p1xSpeed = p1xSpeed + 2;
             }
-            if(p1Left && p1xSpeed > -10){
+            if (p1Left && p1xSpeed > -10) {
                 p1xSpeed = p1xSpeed - 2;
             }
             //friction
-            if(p1OnGround)
-                if(p1Down){
-                    if(p1xSpeed > 0){
-                        if(p1CrouchTime>0){
-                        p1CrouchTime = p1CrouchTime - 1;
+            if (p1OnGround) {
+                if (p1Down) {
+                    if (p1xSpeed > 0) {
+                        if (p1CrouchTime > 0) {
+                            p1CrouchTime = p1CrouchTime - 1;
                         }
-                        p1xSpeed = p1CrouchTime;  
-                        
+                        p1xSpeed = p1CrouchTime;
+
                     }
-                    if(p1xSpeed < 0) {
-                        if(p1CrouchTime<0){
-                        p1CrouchTime = p1CrouchTime + 1;
+                    if (p1xSpeed < 0) {
+                        if (p1CrouchTime < 0) {
+                            p1CrouchTime = p1CrouchTime + 1;
                         }
                         p1xSpeed = p1CrouchTime;
                     }
-                }else{
-                    if(p1xSpeed > 0){
+                } else {
+                    if (p1xSpeed > 0) {
                         p1CrouchTime = p1xSpeed;
                         p1xSpeed = p1xSpeed - 1;
                     }
-                    if(p1xSpeed < 0){
+                    if (p1xSpeed < 0) {
                         p1CrouchTime = p1xSpeed;
                         p1xSpeed = p1xSpeed + 1;
                     }
                 }
+            }
             //move player 1 according to speed
             p1.x = p1.x + p1xSpeed;
             //PLAYER 1 LOGIC ENDS HERE
             //BALL LOGIC STARTS HERE
             //stops the ball from travelling offscreen to the right
-            if (ball.x + ball.width + 30>= WIDTH) {
-               ballxSpeed = ballxSpeed/2;
-                if (!ballOnGround){
-                    ballxSpeed = ballxSpeed +2;
+            if (ball.x + ball.width + 30 >= WIDTH) {
+                ballxSpeed = ballxSpeed / 2;
+                if (!ballOnGround) {
+                    ballxSpeed = ballxSpeed + 2;
                 }
                 if (ballxSpeed > 0) {
                     ballxSpeed = ballxSpeed * (-1);
                 }
                 rotationOffset = rotationOffset - (ballxSpeed - 5);
-                
-                ball.x = WIDTH-ball.width-31;
+
+                ball.x = WIDTH - ball.width - 31;
             }
             //stops the ball from travelling offscreen to the left
             if (ball.x <= 30) {
-                ballxSpeed = ballxSpeed/2;
-                if (!ballOnGround){
-                    ballxSpeed = ballxSpeed -2;
+                ballxSpeed = ballxSpeed / 2;
+                if (!ballOnGround) {
+                    ballxSpeed = ballxSpeed - 2;
                 }
                 if (ballxSpeed < 0) {
                     ballxSpeed = ballxSpeed * (-1);
                 }
                 rotationOffset = rotationOffset - (ballxSpeed + 5);
-                
+
                 ball.x = 31;
             }
-            if(ball.x == WIDTH/2 - ball.width/2){
-                if(ballxSpeed == 1 || ballxSpeed == -1){
+            if (ball.x == WIDTH / 2 - ball.width / 2) {
+                if (ballxSpeed == 1 || ballxSpeed == -1) {
                     ballxSpeed = 0;
                 }
                 //pretty rotation transition
-                if(ballxSpeed == 0){
-                    if(rotationOffset > 55){
-                        rotationOffset = rotationOffset -1;
+                if (ballxSpeed == 0) {
+                    if (rotationOffset > 55) {
+                        rotationOffset = rotationOffset - 1;
                     }
-                    if(rotationOffset < 55){
-                        rotationOffset = rotationOffset +1;
+                    if (rotationOffset < 55) {
+                        rotationOffset = rotationOffset + 1;
                     }
                 }
             }
-            
+
             //turns the ball grey in a 0 speed scenario
-            if(ballxSpeed == 0){
-                lastHit=0;
+            if (ballxSpeed == 0) {
+                lastHit = 0;
             }
             //prevents offset number overflow (very unlikely occurence but safer this way)
             if (rotationOffset > 180) {
@@ -307,6 +348,18 @@ public class KickoutCombat extends JComponent {
             }
             ball.x = ball.x + ballxSpeed;
             rotation = rotationOffset + ball.x;
+            for (int i = 0; i < prevX.length - 1; i++) {
+                prevX[i] = prevX[i + 1];
+                prevY[i] = prevY[i + 1];
+            }
+            //shuffle birds
+            if (true) {
+                prevX[prevX.length - 1] = ball.x;
+                prevY[prevY.length - 1] = ball.y;
+            } else {
+                prevX[prevX.length - 1] = -20;
+                prevY[prevY.length - 1] = -20;
+            }
             //BALL LOGIC ENDS HERE
             // GAME LOGIC ENDS HERE 
             // update the drawing (calls paintComponent)
@@ -327,8 +380,6 @@ public class KickoutCombat extends JComponent {
             };
         }
     }
-    
-
 
     public BufferedImage loadImage(String name) {
         BufferedImage img = null;
@@ -367,6 +418,7 @@ public class KickoutCombat extends JComponent {
     // Used to implements any of the Keyboard Actions
     private class Keyboard extends KeyAdapter {
         // if a key has been pressed down
+
         @Override
         public void keyPressed(KeyEvent e) {
             int key = e.getKeyCode();
@@ -407,7 +459,7 @@ public class KickoutCombat extends JComponent {
             if (key == KeyEvent.VK_SEMICOLON) {
                 p2Jump = true;
             }
-            if (key == (int)'[') {
+            if (key == (int) '[') {
                 p2Kick = true;
             }
         }
@@ -416,7 +468,7 @@ public class KickoutCombat extends JComponent {
         @Override
         public void keyReleased(KeyEvent e) {
             int key = e.getKeyCode();
-            
+
             //PLAYER 1
             if (key == KeyEvent.VK_Q) {
                 p1Left = false;
@@ -430,7 +482,7 @@ public class KickoutCombat extends JComponent {
             }
             if (key == KeyEvent.VK_A) {
                 p1Down = false;
-                if(p1LeftWait){
+                if (p1LeftWait) {
                     p1Left = true;
                 }
             }
@@ -456,7 +508,7 @@ public class KickoutCombat extends JComponent {
             if (key == KeyEvent.VK_SEMICOLON) {
                 p2Jump = false;
             }
-            if (key == (int)'[') {
+            if (key == (int) '[') {
                 p2Kick = false;
             }
         }
