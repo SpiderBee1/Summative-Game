@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.shape.Line;
 import javax.imageio.ImageIO;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
@@ -45,21 +46,23 @@ public class KickoutCombat extends JComponent {
     int StartLives = 3;
     int StartHealth = 200;
     //0=none, 1=p1, 2=p2
-    int lastHit = 2;
+    int lastHit = 1;
     //PLAYER 1
     Rectangle p1 = new Rectangle(130, 520, 70, 250);
     boolean p1Left = false;
     boolean p1Right = false;
-    boolean p1Up = false;
-    boolean p1Down = false;
     boolean p1Jump = false;
+    boolean p1Down = false;
+    boolean p1Knee = false;
     boolean p1Kick = false;
     boolean p1OnGround = true;
     boolean p1OnWall = false;
-    boolean p1LeftWait = false;
+    boolean p1MovePositive = true;
     int p1xSpeed = 0;
     int p1ySpeed = 0;
     int p1CoolDown = 0;
+    int p1JumpTime = 0;
+    int p1WalkTime = 0;
     int p1CrouchTime = 0;
     int p1Lives = StartLives;
     int p1Health = StartHealth;
@@ -67,15 +70,18 @@ public class KickoutCombat extends JComponent {
     Rectangle p2 = new Rectangle(1000, 520, 70, 250);
     boolean p2Left = false;
     boolean p2Right = false;
-    boolean p2Up = false;
-    boolean p2Down = false;
     boolean p2Jump = false;
+    boolean p2Down = false;
+    boolean p2Knee = false;
     boolean p2Kick = false;
     boolean p2OnGround = false;
     boolean p2OnWall = false;
+    boolean p2MovePositive = false;
     int p2xSpeed = 0;
     int p2ySpeed = 0;
     int p2CoolDown = 0;
+    int p2JumpTime = 0;
+    int p2WalkTime = 0;
     int p2CrouchTime = 0;
     int p2Lives = StartLives;
     int p2Health = StartHealth;
@@ -91,11 +97,32 @@ public class KickoutCombat extends JComponent {
     int[] prevX = new int[trail];
     int[] prevY = new int[trail];
     //BLOCKS
-    Rectangle floor = new Rectangle(0, 770, WIDTH, 130);
-    Rectangle ceiling = new Rectangle(0, 0, WIDTH, 30);
-    Rectangle leftWall = new Rectangle(0, 0, 30, HEIGHT);
-    Rectangle rightWall = new Rectangle(WIDTH - 30, 0, 30, HEIGHT);
     Rectangle platform = new Rectangle(10, 10, 10, 10);
+    //CHARACTER BODY
+    Line[] LStand = new Line[11];
+    Line[] RStand = new Line[11];
+    Line[] LJump = new Line[11];
+    Line[] RJump = new Line[11];
+    Line[] LKnee = new Line[11];
+    Line[] RKnee = new Line[11];
+    Line[] LHighKnee = new Line[11];
+    Line[] RHighKnee = new Line[11];
+    Line[] LKick = new Line[11];
+    Line[] RKick = new Line[11];
+    Line[] LHighKick = new Line[11];
+    Line[] RHighKick = new Line[11];
+    Line[] LWall = new Line[11];
+    Line[] RWall = new Line[11];
+    Line[] LSlide = new Line[11];
+    Line[] RSlide = new Line[11];
+    Line[] LCrouch = new Line[11];
+    Line[] RCrouch = new Line[11];
+    Line[] LWalk1 = new Line[11];
+    Line[] LWalk2 = new Line[11];
+    Line[] LWalk3 = new Line[11];
+    Line[] RWalk1 = new Line[11];
+    Line[] RWalk2 = new Line[11];
+    Line[] RWalk3 = new Line[11];
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
     // You will learn more about this in Grade 12 :)
@@ -165,23 +192,46 @@ public class KickoutCombat extends JComponent {
         //PLAYER 1
         g.setColor(Color.MAGENTA);
         g.fillRect(p1.x, p1.y, p1.width, p1.height);
+        //draw graphics
+        //determine direction
+        if(p1xSpeed > 0){
+            p1MovePositive = true;
+        }else if(p1xSpeed < 0){
+            p1MovePositive = false;
+        }
+        //moving right
+        if(p1MovePositive == true){
+            if(p1OnGround && p1xSpeed == 0){
+                g.setColor(Color.BLACK);
+                g.drawRect(p1.x + p1.width - 50, p1.y, 50, 50); 
+            }
+        }
+        //moving left
+        if(p1MovePositive == false){
+            if(p1OnGround && p1xSpeed == 0){
+                g.setColor(Color.BLACK);
+                g.drawRect(p1.x, p1.y, 50, 50); 
+            }
+        }
+        
         //PLAYER 2
         g.setColor(Color.YELLOW);
         g.fillRect(p2.x, p2.y, p2.width, p2.height);
         //BALL EFFECTS
         for (int i = 0; i < prevX.length; i++) {
             if (lastHit == 1) {
-                Color purpl = new Color(255, 0, 255, (int) (i / 30.0 * 255));
+                Color purpl = new Color(220, 0, 220, (int) (i / 60.0 * 255));
                 g.setColor(purpl);
                 g.fillOval(prevX[i], prevY[i], 50, 50);
             } else if (lastHit == 2) {
-                Color yello = new Color(255, 255, 0, (int) (i / 30.0 * 255));
+                Color yello = new Color(230, 230, 0, (int) (i / 180.0 * 255));
                 g.setColor(yello);
                 g.fillOval(prevX[i], prevY[i], 50, 50);
+                g.fillOval(prevX[i]+10, prevY[i]+10, 30, 30);
             }
         }
         //BALL
-        g.setColor(Color.WHITE);
+        g.setColor(Color.DARK_GRAY);
         g.fillOval(ball.x, ball.y, ball.width, ball.height);
         //this determines the ball's outer color
         if (lastHit == 0) {
@@ -219,7 +269,7 @@ public class KickoutCombat extends JComponent {
         g.fillRect(0, HEIGHT - 70, 490, 60);
         g.setColor(Color.YELLOW);
         g.fillRect(710, HEIGHT - 70, 490, 60);
-
+        g.fillRect(600, 300, 4, 4);
         // GAME DRAWING ENDS HERE
     }
 
@@ -234,7 +284,9 @@ public class KickoutCombat extends JComponent {
             prevX[i] = -100;
             prevY[i] = -100;
         }
-        //playSong("song.mp3");
+        //doesn't work
+        //playSong("JerryTerry - Dial Me In.mp3");
+        
     }
 
     // The main game loop
@@ -265,6 +317,7 @@ public class KickoutCombat extends JComponent {
             }
             //friction
             if (p1OnGround) {
+                p1JumpTime = 0;
                 if (p1Down) {
                     if (p1xSpeed > 0) {
                         if (p1CrouchTime > 0) {
@@ -289,9 +342,26 @@ public class KickoutCombat extends JComponent {
                         p1xSpeed = p1xSpeed + 1;
                     }
                 }
+                if(p1Jump && p1JumpTime == 0 && p1CoolDown == 0){
+                    p1ySpeed = p1ySpeed -2;
+                    p1OnGround = false;
+                }
+            }
+            if(!p1OnGround){
+                if(p1Jump && p1JumpTime < 8){
+                    p1ySpeed = p1ySpeed -3;
+                    p1JumpTime = p1JumpTime + 1;
+                }
+                p1ySpeed = p1ySpeed + 1;
+            }
+            if(p1.y + p1.height > 770){
+                p1.y = 520;
+                p1ySpeed = 0;
+                p1OnGround = true;
             }
             //move player 1 according to speed
             p1.x = p1.x + p1xSpeed;
+            p1.y = p1.y + p1ySpeed;
             //PLAYER 1 LOGIC ENDS HERE
             //BALL LOGIC STARTS HERE
             //stops the ball from travelling offscreen to the right
@@ -425,20 +495,20 @@ public class KickoutCombat extends JComponent {
             //PLAYER 1
             if (key == KeyEvent.VK_Q) {
                 p1Left = true;
-                p1LeftWait = true;
             }
             if (key == KeyEvent.VK_Z) {
                 p1Right = true;
             }
             if (key == KeyEvent.VK_S) {
-                p1Up = true;
+                p1Jump = true;
+                p1JumpTime = p1JumpTime + 1;
             }
             if (key == KeyEvent.VK_A) {
                 p1Down = true;
                 p1CrouchTime = p1CrouchTime + p1CrouchTime;
             }
             if (key == KeyEvent.VK_C) {
-                p1Jump = true;
+                p1Knee = true;
             }
             if (key == KeyEvent.VK_V) {
                 p1Kick = true;
@@ -451,13 +521,13 @@ public class KickoutCombat extends JComponent {
                 p2Right = true;
             }
             if (key == KeyEvent.VK_I) {
-                p2Up = true;
+                p2Jump = true;
             }
             if (key == KeyEvent.VK_K) {
                 p2Down = true;
             }
             if (key == KeyEvent.VK_SEMICOLON) {
-                p2Jump = true;
+                p2Knee = true;
             }
             if (key == (int) '[') {
                 p2Kick = true;
@@ -472,22 +542,19 @@ public class KickoutCombat extends JComponent {
             //PLAYER 1
             if (key == KeyEvent.VK_Q) {
                 p1Left = false;
-                p1LeftWait = false;
             }
             if (key == KeyEvent.VK_Z) {
                 p1Right = false;
             }
             if (key == KeyEvent.VK_S) {
-                p1Up = false;
+                p1Jump = false;
+                p1JumpTime = 100;
             }
             if (key == KeyEvent.VK_A) {
                 p1Down = false;
-                if (p1LeftWait) {
-                    p1Left = true;
-                }
             }
             if (key == KeyEvent.VK_C) {
-                p1Jump = false;
+                p1Knee = false;
             }
             if (key == KeyEvent.VK_V) {
                 p1Kick = false;
@@ -500,13 +567,13 @@ public class KickoutCombat extends JComponent {
                 p2Right = false;
             }
             if (key == KeyEvent.VK_I) {
-                p2Up = false;
+                p2Jump = false;
             }
             if (key == KeyEvent.VK_K) {
                 p2Down = false;
             }
             if (key == KeyEvent.VK_SEMICOLON) {
-                p2Jump = false;
+                p2Knee = false;
             }
             if (key == (int) '[') {
                 p2Kick = false;
