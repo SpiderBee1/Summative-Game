@@ -46,9 +46,12 @@ public class KickoutCombat1 extends JComponent {
     //STARTING
     //pause function
     //not utilised in this early version
-    boolean RunGame = false;
+    boolean RunGame = true;
+    int frameTimer = 0;
+    int secondTimer = 0;
+    int pauseTime = 3;
     /*
-    [All levels should have a dark color scheme to contrast the brighter ball and players]
+    [All levels should have a dark color scheme to contrast the brighter  ball and players]
     level 1: dead end(bust some heads)
     level 2: outer space(psychografik)
     level 3: graveyard(spooky scary)
@@ -164,6 +167,7 @@ public class KickoutCombat1 extends JComponent {
     Rectangle[] RWalk3 = new Rectangle[11];
     //FONT
     Font normal = new Font("unsteady oversteer", Font.BOLD, 50);
+    Font urgent = new Font("unsteady oversteer", Font.BOLD, 100);
     // GAME VARIABLES END HERE   
     // Constructor to create the Frame and place the panel in
     // You will learn more about this in Grade 12 :)
@@ -365,12 +369,16 @@ public class KickoutCombat1 extends JComponent {
             g.fillRect(platform.x, platform.y, platform.width, platform.height);
             g.fillRect(platform.x, platform.y + 20, 20, 275);
             g.fillRect(platform.x + platform.width - 20, platform.y + 20, 20, 275);
+            g.setFont(normal);
+            g.setColor(Color.BLACK);
+            g.drawString("BALL kicking SIMULATOR", 250, 150);
         }
         //PLATFORM
         g.setColor(Color.black);
-        //g.fillRect(platform.x, platform.y, platform.width, platform.height);
-        g.fillRect(platformRight.x, platformRight.y, platformRight.width, platformRight.height);
-        g.fillRect(platformLeft.x, platformLeft.y, platformLeft.width, platformLeft.height);
+        g.fillRect(platformRight.x, platformRight.y, platformRight.width - 50, platformRight.height);
+        g.fillRect(platformRight.x + platformRight.width - 70, platformRight.y+20, 20, 500);
+        g.fillRect(platformLeft.x + 50, platformLeft.y, platformLeft.width - 50, platformLeft.height);
+        g.fillRect(platformLeft.x + 50, platformLeft.y + 20, 20, 500);
         //g.fillRect(platformRight.x, platformRight.y, platformRight.width, platformRight.height);
         //lights
         if (colors[0] == 0) {
@@ -426,7 +434,7 @@ public class KickoutCombat1 extends JComponent {
         g.setColor(Color.MAGENTA);
         //g.fillRect(p1.x, p1.y, p1.width, p1.height);
         drawPlayer1(g);
-
+        
         //PLAYER 2
         g.setColor(Color.YELLOW);
         //g.fillRect(p2.x, p2.y, p2.width, p2.height);
@@ -479,20 +487,15 @@ public class KickoutCombat1 extends JComponent {
         g.drawLine(ball.x + ball.width - 15, ball.y + 15, ball.x + ball.width - 22, ball.y + 22);
         g.drawLine(ball.x + 15, ball.y + ball.height - 15, ball.x + 22, ball.y + ball.height - 22);
         g.drawLine(ball.x + ball.width - 15, ball.y + ball.height - 15, ball.x + ball.width - 22, ball.y + ball.height - 22);
-        g.setColor(Color.GREEN);
-        g.fillRect(50, 100, 300, 50);
-        g.setFont(normal);
-        g.setColor(Color.BLACK);
-        g.drawString("1234567890", 50, 150);
+        //g.setColor(Color.GREEN);
+        //g.fillRect(50, 100, 300, 50);
+        
         //HUD
         g.setColor(Color.BLACK);
         g.fillRoundRect(490, HEIGHT - 110, 220, 220, 120, 60);
         g.fillRect(0, 0, 30, HEIGHT);
         g.fillRect(WIDTH - 30, 0, 30, HEIGHT);
         g.fillRect(0, HEIGHT - 80, WIDTH, 80);
-        //g.fillRect(0, 0, WIDTH, 80);
-        //g.fillArc(700, -20, 1000, 200, 180, 90);
-        //g.fillArc(-500, -20, 1000, 200, 270, 90);
         g.setColor(Color.CYAN);
         g.fillRoundRect(500, HEIGHT - 100, 200, 200, 100, 50);
         g.setColor(Color.MAGENTA);
@@ -509,12 +512,27 @@ public class KickoutCombat1 extends JComponent {
                 g.fillRect(p1Hits[1].x, p1Hits[1].y, p1Hits[1].width, p1Hits[1].height);
             }
         }
-        //pause
-            if(RunGame == false){
-                g.setColor(Color.WHITE);
-                g.fillRect(500, 250, 80, 200);
-                g.fillRect(610, 250, 80, 200);
+        if (p2CoolDown != 0) {
+            g.setColor(Color.RED);
+            if (p2MovePositive == true) {
+                g.fillRect(p2Hits[0].x, p2Hits[0].y, p2Hits[0].width, p2Hits[0].height);
             }
+            if (p2MovePositive == false) {
+                g.fillRect(p2Hits[1].x, p2Hits[1].y, p2Hits[1].width, p2Hits[1].height);
+            }
+        }
+        //pause
+        if (RunGame == false) {
+            g.setColor(Color.WHITE);
+            g.fillRect(500, 250, 80, 200);
+            g.fillRect(610, 250, 80, 200);
+        } else if (pauseTime > 0) {
+            g.setFont(urgent);
+            g.setColor(Color.WHITE);
+            g.drawString("" + pauseTime, 550, 300);
+        }
+        //text
+
         // GAME DRAWING ENDS HERE
     }
     // This method is used to do any pre-setup you might need to do
@@ -631,6 +649,15 @@ public class KickoutCombat1 extends JComponent {
             // GAME LOGIC STARTS HERE 
             //PLAYER 1 LOGIC STARTS HERE
             if (RunGame) {
+                frameTimer = frameTimer + 1;
+                if (frameTimer == 60) {
+                    if (pauseTime> 0){
+                    pauseTime = pauseTime - 1;
+                    }
+                    frameTimer = 0;
+                }
+            }
+            if (RunGame && pauseTime == 0) {
                 if (p1.intersects(platformL)) {
                     p1OnGround = false;
                 }
@@ -874,6 +901,240 @@ public class KickoutCombat1 extends JComponent {
                 }
                 //PLAYER 1 LOGIC ENDS HERE
                 //PLAYER 2 LOGIC STARTS HERE
+                if (p2.intersects(platformL)) {
+                    p2OnGround = false;
+                }
+                if (p2.intersects(platformR)) {
+                    p2OnGround = false;
+                }
+                //reset can platform
+                p2CanPlat = false;
+                p2CanPlat2 = false;
+                //check platform 1
+                if (p2.y + p2.height < platform.y + platform.height) {
+                    p2CanPlat = true;
+                }
+                //check platform 2
+                if (p2.y + p2.height < platformLeft.y + platformLeft.height) {
+                    p2CanPlat2 = true;
+                }
+                if (p2Right && p2xSpeed < 10 && p2CoolDown <= 3) {
+                    //player moves slower in the air
+                    if (p2OnGround) {
+                        p2xSpeed = p2xSpeed + 2;
+                    } else {
+                        p2xSpeed = p2xSpeed + 1;
+                    }
+                }
+                if (p2Left && p2xSpeed > -10 && p2CoolDown <= 3) {
+                    //player moves slower in the air
+                    if (p2OnGround) {
+                        p2xSpeed = p2xSpeed - 2;
+                    } else {
+                        p2xSpeed = p2xSpeed - 1;
+                    }
+                }
+                //friction
+                //check if p1 on ground
+                if (p2.y + p2.height > 770) {
+                    p2.y = 770 - p2.height;
+                    p2ySpeed = 0;
+                    p2OnGround = true;
+                }
+                //check if on platform 1
+                if (p2CanPlat) {
+                    if (p2.intersects(platform)) {
+                        p2.y = platform.y - p2.height;
+                        p2OnGround = true;
+                        p2ySpeed = 0;
+                    }
+                }
+                //check if on platform 2
+                if (p2CanPlat2) {
+                    if (p2.intersects(platformLeft) || p2.intersects(platformRight)) {
+                        p2.y = platformLeft.y - p2.height;
+                        p2OnGround = true;
+                        p2ySpeed = 0;
+                    }
+                }
+                //move player 1 according to speed
+                p2.x = p2.x + p2xSpeed;
+                p2.y = p2.y + p2ySpeed;
+                //reset can jump
+                p2CanJump = false;
+                p2OnLeftWall = false;
+                //check if on left wall
+                if (p2.x < 30) {
+                    p2.x = 30;
+                    if (p2Jump == false) {
+                        p2xSpeed = 0;
+                    } else {
+                        p2xSpeed = 12;
+                    }
+                    p2ySpeed = 1;
+                    p2CanJump = true;
+                    p2JumpTime = 2;
+                    p2OnLeftWall = true;
+                    //  p1.y = p1.y + 3;
+                }
+                p2OnRightWall = false;
+                //check if on right wall
+                if (p2.x + p2.width > WIDTH - 30) {
+                    p2.x = WIDTH - 30 - p2.width;
+                    if (p2Jump == false) {
+                        p2xSpeed = 0;
+                    } else {
+                        p2xSpeed = -12;
+                    }
+                    p2ySpeed = 1;
+                    p2CanJump = true;
+                    p2JumpTime = 2;
+                    p2OnRightWall = true;
+                }
+                if (p2OnGround) {
+                    p2CanJump = true;
+                    p2OnRightWall = false;
+                    p2JumpTime = 0;
+                    if (p2Down) {
+                        if (p2xSpeed > 0) {
+                            if (p2CrouchTime > 0) {
+                                p2CrouchTime = p2CrouchTime - 1;
+                            }
+                            p2xSpeed = p2CrouchTime;
+                        }
+                        if (p2xSpeed < 0) {
+                            if (p2CrouchTime < 0) {
+                                p2CrouchTime = p2CrouchTime + 1;
+                            }
+                            p2xSpeed = p2CrouchTime;
+                        }
+                        p2CanPlat = false;
+                        if (p2.y < 760 - p2.height) {
+                            p2.y = p2.y + 20;
+                            p2OnGround = false;
+                        }
+                    } else {
+                        if (p2xSpeed > 0) {
+                            p2CrouchTime = p2xSpeed;
+                            p2xSpeed = p2xSpeed - 1;
+                        }
+                        if (p2xSpeed < 0) {
+                            p2CrouchTime = p2xSpeed;
+                            p2xSpeed = p2xSpeed + 1;
+                        }
+                    }
+
+                }
+                if (!p2OnGround) {
+                    //analog jump
+                    if (p2Jump && p2JumpTime < 8) {
+                        p2ySpeed = p2ySpeed - 3;
+                        p2JumpTime = p2JumpTime + 1;
+                    }
+                    p2ySpeed = p2ySpeed + 1;
+                }
+
+                if (p2CanJump) {
+                    if (p2CoolDown == 0) {
+                        if (p2Jump && p2JumpTime == 0) {
+                            p2ySpeed = p2ySpeed - 2;
+                            p2OnGround = false;
+                            if (p2OnLeftWall) {
+                                p2xSpeed = 10;
+                                p2ySpeed = -3;
+                            }
+                            if (p2OnRightWall) {
+                                p2xSpeed = -10;
+                                p2ySpeed = -3;
+                            }
+                        }
+                    }
+                }
+                //PLAYER 2 KICKS
+                //right knee
+                p2Hits[0] = new Rectangle(p2.x + 40, p2.y + 100, 80, 100);
+                //left knee
+                p2Hits[1] = new Rectangle(p2.x - 50, p2.y + 100, 80, 100);
+                //right kick
+                p2Hits[2] = new Rectangle(p2.x + 40, p2.y + 100, 100, 100);
+                //left kick
+                p2Hits[3] = new Rectangle(p2.x - 50, p2.y + 100, 100, 100);
+                if (p2Knee && p2CoolDown == 0 && p2OnLeftWall == false && p2OnRightWall == false) {
+                    if (p2MovePositive == true) {
+                        if (p2Hits[0].intersects(ball)) {
+                            ballxSpeed = 0 + p1xSpeed / 4;
+                            ballySpeed = -27;
+                            ballOnGround = false;
+                            lastHit = 2;
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    playSong("Jab.mp3");
+                                }
+                            }.start();
+                        }
+                    }
+                    if (p2MovePositive == false) {
+                        if (p2Hits[1].intersects(ball)) {
+                            ballxSpeed = 0 + p1xSpeed / 4;
+                            ballySpeed = -27;
+                            ballOnGround = false;
+                            lastHit = 2;
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    playSong("Jab.mp3");
+                                }
+                            }.start();
+                        }
+                    }
+                    p2Knee = false;
+                    p2CoolDown = 20;
+                }
+                if (p2Kick && p2CoolDown == 0 && p2OnLeftWall == false && p2OnRightWall == false) {
+                    if (p2MovePositive == true) {
+                        if (p2Hits[2].intersects(ball)) {
+                            ballxSpeed = 30 + p2xSpeed;
+                            if (p2Down == false) {
+                                ballySpeed = -20 + p1ySpeed;
+                            } else {
+                                ballySpeed = 8;
+                            }
+                            ballOnGround = false;
+                            lastHit = 2;
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    playSong("Kick.mp3");
+                                }
+                            }.start();
+                        }
+                    }
+                    if (p2MovePositive == false) {
+                        if (p2Hits[3].intersects(ball)) {
+                            ballxSpeed = -30 + p2xSpeed;
+                            if (p2Down == false) {
+                                ballySpeed = -20 + p1ySpeed;
+                            } else {
+                                ballySpeed = 8;
+                            }
+                            ballOnGround = false;
+                            lastHit = 2;
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    playSong("Kick.mp3");
+                                }
+                            }.start();
+                        }
+                    }
+                    p2Kick = false;
+                    p2CoolDown = 20;
+                }
+                //reduce cooldown
+                if (p2CoolDown > 0) {
+                    p2CoolDown = p2CoolDown - 1;
+                }
                 //PLAYER 2 LOGIC ENDS HERE
                 //BALL LOGIC STARTS HERE
                 //stops the ball from travelling offscreen to the right
@@ -1137,6 +1398,8 @@ public class KickoutCombat1 extends JComponent {
             if (key == KeyEvent.VK_R) {
                 if (RunGame) {
                     RunGame = false;
+                    pauseTime = 3;
+                    frameTimer = 0;
                 } else {
                     RunGame = true;
                 }
